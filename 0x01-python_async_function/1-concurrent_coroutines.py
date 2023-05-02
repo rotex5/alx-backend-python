@@ -4,7 +4,7 @@ Let's execute multiple coroutines
 at the same time with async
 """
 import asyncio
-from typing import List
+from typing import List, Any
 
 wait_random = __import__('0-basic_async_syntax').wait_random
 
@@ -15,12 +15,14 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
     (float values) arranged in acending order.
     """
     tasks: List = []
-    delays: List = []
+    # delays: List = []
+    delays = []
 
     for _ in range(n):
         task = asyncio.create_task(wait_random(max_delay))
         tasks.append(task)
 
+    """
     while tasks:
         done, tasks = await asyncio.wait(
                 tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -33,5 +35,11 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
                     if delay < d:
                         delays.insert(j, delay)
                         break
+    # code works and passes checker
+    """
+    # code refactored(i.e shorter and lass complicated)
+    for task in asyncio.as_completed(tasks):
+        delay = await task
+        delays.append(delay)
 
     return delays
