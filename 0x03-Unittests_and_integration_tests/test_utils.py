@@ -13,6 +13,7 @@ from typing import (
 from utils import (
     access_nested_map,
     get_json,
+    memoize
 )
 
 
@@ -74,3 +75,41 @@ class TestGetJson(unittest.TestCase):
         mock.json.return_value = test_payload
         with patch('requests.get', return_value=mock):
             self.assertEqual(get_json(test_url), test_payload)
+
+
+class TestMemoize(unittest.TestCase):
+    """
+    Testing Memoize function
+    """
+    def test_memoize(self) -> None:
+        """
+        Test that when calling a_property twice, the correct result is
+        returned but a_method is only called once using assert_called_once
+        """
+        class TestClass:
+            """
+            Test Class for wrapping with memoize
+            """
+            def a_method(self):
+                """
+                Test method for a_method
+                """
+                return 42
+
+            @memoize
+            def a_property(self):
+                """
+                Test method for a_property
+                """
+                return self.a_method()
+
+        with patch.object(TestClass, 'a_method') as mock:
+            test_class = TestClass()
+            test_class.a_property()
+            test_class.a_property()
+
+            mock.assert_called_once()
+
+
+if __name__ == '__main__':
+    unittest.main()
