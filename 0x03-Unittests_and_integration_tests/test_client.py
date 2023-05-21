@@ -153,9 +153,20 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         self.assertEqual(test_client.public_repos(), self.expected_repos)
         self.mock.assert_called()
 
+    def test_public_repos_with_license(self) -> None:
+        """
+        Testing the public_repos method with a license
+        """
+        test_client = GithubOrgClient("google")
+
+        self.assertEqual(test_client.public_repos(), self.expected_repos)
+        self.assertEqual(test_client.public_repos(license="apache-2.0"),
+                         self.apache2_repos)
+        self.mock.assert_called()
+
     @classmethod
     def tearDownClass(cls) -> None:
         """
-        Destroys the class fixtures after tests in an individual class have run
+        Destroys the class fixtures after all test have been ran
         """
         cls.get_patcher.stop()
