@@ -2,7 +2,8 @@
 """ Module for testing client """
 
 from client import GithubOrgClient
-from parameterized import parameterized
+from fixtures import TEST_PAYLOAD
+from parameterized import parameterized, parameterized_class
 from typing import Dict
 import unittest
 from unittest.mock import (
@@ -120,3 +121,41 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         result = GithubOrgClient.has_license(repo, key)
         self.assertNotEqual(result, expected)
+
+
+@parameterized_class(
+    ("org_payload", "repos_payload", "expected_repos", "apache2_repos"),
+    TEST_PAYLOAD
+)
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """
+    Integration tests for the GithubOrgClient class
+    """
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Class setup fixtures"""
+        config = {'return_value.json.side_effect':
+                  [
+                      cls.org_payload, cls.repos_payload,
+                      cls.org_payload, cls.repos_payload
+                  ]
+                  }
+        cls.get_patcher = patch('requests.get', **config)
+
+        cls.mock = cls.get_patcher.start()
+
+    def test_public_repos(self) -> None:
+        """
+        Testing the public_repos method.
+        """
+        test_client = GithubOrgClient("google")
+
+        self.assertEqual(test_client.public_repos(), self.expected_repos)
+        self.mock.assert_called()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """
+        Destroys the class fixtures after tests in an individual class have run
+        """
+        cls.get_patcher.stop()
